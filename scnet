@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+
+addr_dev_tbl = [
+    {'addr': '10.10.10.140/24', 'dev': 'enp0s25'},
+    {'addr': '172.27.22.140/24', 'dev': 'enp0s25'},
+]
+
+
+def add_addr(addr, dev):
+    if not addr or not dev:
+        return
+
+    ret = os.system('ip addr show dev %s | grep -q -e %s > /dev/null' %
+                    (dev, addr))
+    if ret == 0:
+        print('address: %s existed' % addr)
+    elif ret == 1 << 8:
+        if os.system('sudo ip addr add %s dev %s' % (addr, dev)) == 0:
+            print('add address: %s' % addr)
+        else:
+            print('add address %s failed' % addr)
+    else:
+        print('exec command failed')
+
+
+def del_addr(addr, dev):
+    if not addr or not dev:
+        return
+
+    ret = os.system('ip addr show dev %s | grep -q -e %s > /dev/null' %
+                    (dev, addr))
+    if ret == 0:
+        if os.system('sudo ip addr del %s dev %s' % (addr, dev)) == 0:
+            print('delete address: %s' % addr)
+        else:
+            print('delete address %s failed' % addr)
+    elif ret == 1 << 8:
+        print('address: %s isn\'t existed' % addr)
+    else:
+        print('exec command failed')
+
+
+def do_add():
+    for entry in addr_dev_tbl:
+        add_addr(entry['addr'], entry['dev'])
+
+
+def do_del():
+    for entry in addr_dev_tbl:
+        del_addr(entry['addr'], entry['dev'])
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1 or sys.argv[1] == 'add':
+        do_add()
+    elif sys.argv[1] == 'del':
+        do_del()

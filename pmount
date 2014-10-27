@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+pmount()
+{
+    if mount | grep -q $1; then
+        echo "Device has been mounted"
+        return
+    fi
+
+    local dev_name=`basename $1`
+
+    if [ -e /tmp/$dev_name ]; then
+        if [ ! -d /tmp/$dev_name ]; then
+            echo "/tmp/$dev_name is existed but not a directory"
+            return
+        fi
+    else
+        mkdir /tmp/$dev_name
+    fi
+
+    sudo mount --option utf8,uid=$UID $1 /tmp/$dev_name
+}
+
+pumount()
+{
+    if ! mount | grep -q $1; then
+        echo "Device hasn't been mounted"
+        return
+    fi
+
+	echo "sync ..."
+    sync
+    sudo umount $1
+}
+
+main()
+{
+	local cmd=$1
+	local dev=$2
+
+	if [ -z $dev ]; then
+		echo "No divice specified" >&2
+		exit 255
+	fi
+
+	case $cmd in
+		*pmount)
+			pmount $dev
+			;;
+		*pumount)
+			pumount $dev
+			;;
+		*)
+			echo "Unknow command $@" >&2
+			exit 255
+			;;
+	esac
+}
+
+main $0 $@

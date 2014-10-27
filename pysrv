@@ -1,0 +1,20 @@
+#!/usr/bin/env python2.7
+
+
+import os
+import BaseHTTPServer
+import SimpleHTTPServer
+
+
+def print_ip():
+    os.system('ip a')
+
+
+def run_server(HandlerClass=SimpleHTTPServer.SimpleHTTPRequestHandler,
+               ServerClass=BaseHTTPServer.HTTPServer):
+    BaseHTTPServer.test(HandlerClass, ServerClass)
+
+
+if __name__ == '__main__':
+    print_ip()
+    run_server()

@@ -2,6 +2,11 @@
 
 pmount()
 {
+    if which udevil > /dev/null 2>&1; then
+        udevil mount $1
+        return 0
+    fi
+
     if mount | grep -q $1; then
         echo "Device has been mounted"
         return
@@ -23,38 +28,48 @@ pmount()
 
 pumount()
 {
+    if which udevil > /dev/null 2>&1; then
+        udevil umount $1
+        return 0
+    fi
+
     if ! mount | grep -q $1; then
         echo "Device hasn't been mounted"
         return
     fi
 
-	echo "sync ..."
-    sync
+    echo "sync ..."
+    sudo sync $1
     sudo umount $1
 }
 
 main()
 {
-	local cmd=$1
-	local dev=$2
+    local cmd=$1
+    local dev=$2
 
-	if [ -z $dev ]; then
-		echo "No divice specified" >&2
-		exit 255
-	fi
+    if [ -z $dev ]; then
+        echo "Error: No device specified" >&2
+        exit 255
+    fi
 
-	case $cmd in
-		*pmount)
-			pmount $dev
-			;;
-		*pumount)
-			pumount $dev
-			;;
-		*)
-			echo "Unknow command $@" >&2
-			exit 255
-			;;
-	esac
+    if ! echo $dev | grep -q '$/dev/'; then
+        echo 'Error: Only /dev/* device can be mounted' >&2
+        exit 255
+    fi
+
+    case $cmd in
+        *pmount)
+            pmount $dev
+            ;;
+        *pumount)
+            pumount $dev
+            ;;
+        *)
+            echo "Unknow command $@" >&2
+            exit 255
+            ;;
+    esac
 }
 
 main $0 $@
